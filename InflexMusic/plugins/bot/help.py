@@ -7,7 +7,7 @@ from InflexMusic import app
 from InflexMusic.utils import help_pannel
 from InflexMusic.utils.database import get_lang
 from InflexMusic.utils.decorators.language import LanguageStart, languageCB
-from InflexMusic.utils.inline.help import help_back_markup, private_help_pane_l
+from InflexMusic.utils.inline.help import help_back_markup, private_help_panel, help_panel_1
 from config import BANNED_USERS, START_IMG_URL, SUPPORT_GROUP
 from strings import get_string, helpers
 
