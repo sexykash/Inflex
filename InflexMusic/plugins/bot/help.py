@@ -43,15 +43,68 @@ async def helper_private(
             caption=_["help_1"].format(SUPPORT_GROUP),
             reply_markup=keyboard,
         )
-
-
+@app.on_callback_query(filters.regex("Fhelper") & ~BANNED_USERS)
+async def helper_private(
+    client: app, update: Union[types.Message, types.CallbackQuery]
+):
+    is_callback = isinstance(update, types.CallbackQuery)
+    if is_callback:
+        try:
+            await update.answer()
+        except:
+            pass
+        chat_id = update.message.chat.id
+        language = await get_lang(chat_id)
+        _ = get_string(language)
+        keyboard = help_pannel(_, True)
+        await update.edit_message_text(
+            _["help_1"].format(SUPPORT_CHAT), reply_markup=keyboard
+        )
+    else:
+        try:
+            await update.delete()
+        except:
+            pass
+        language = await get_lang(update.chat.id)
+        _ = get_string(language)
+        keyboard = help_pannel(_)
+        await update.reply_photo(
+            photo=START_IMG_URL,
+            caption=_["help_1"].format(SUPPORT_CHAT),
+            reply_markup=keyboard,
+        )
+        
 @app.on_message(filters.command(["help"]) & filters.group & ~BANNED_USERS)
 @LanguageStart
 async def help_com_group(client, message: Message, _):
     keyboard = private_help_panel(_)
     await message.reply_text(_["help_2"], reply_markup=InlineKeyboardMarkup(keyboard))
-
-
+    
+@app.on_callback_query(filters.regex("Pages") & ~BANNED_USERS)
+@languageCB
+async def del_back_playlist(client, CallbackQuery, _):
+    await CallbackQuery.answer()
+    callback_data = CallbackQuery.data.strip()
+    callback_request = callback_data.split(None, 1)[1]
+    state, pages = callback_request.split("|")
+    pages = int(pages)
+    if state == "Forw":
+        if pages == 1:
+            buttons = help_panel_1(_)
+        if pages == 0:
+            buttons = help_pannel(_)
+    if state == "Back":
+        if pages == 1:
+            buttons = help_pannel(_)
+        if pages == 0:
+            buttons = help_panel_1(_)
+    try:
+        await CallbackQuery.edit_message_reply_markup(
+            reply_markup=InlineKeyboardMarkup(buttons)
+        )
+    except:
+        return
+        
 @app.on_callback_query(filters.regex("help_callback") & ~BANNED_USERS)
 @languageCB
 async def helper_cb(client, CallbackQuery, _):
