@@ -28,7 +28,7 @@ async def helper_private(
         _ = get_string(language)
         keyboard = help_pannel(_, True)
         await update.edit_message_text(
-            _["help_1"].format(SUPPORT_GROUP), reply_markup=keyboard
+            _["help_1"].format(SUPPORT_CHAT), reply_markup=keyboard
         )
     else:
         try:
@@ -39,10 +39,11 @@ async def helper_private(
         _ = get_string(language)
         keyboard = help_pannel(_)
         await update.reply_photo(
-            photo=random.choice(START_IMG_URL),
-            caption=_["help_1"].format(SUPPORT_GROUP),
+            photo=START_IMG_URL,
+            caption=_["help_1"].format(SUPPORT_CHAT),
             reply_markup=keyboard,
         )
+
 @app.on_callback_query(filters.regex("Fhelper") & ~BANNED_USERS)
 async def helper_private(
     client: app, update: Union[types.Message, types.CallbackQuery]
@@ -73,13 +74,14 @@ async def helper_private(
             caption=_["help_1"].format(SUPPORT_CHAT),
             reply_markup=keyboard,
         )
-        
+
+
 @app.on_message(filters.command(["help"]) & filters.group & ~BANNED_USERS)
 @LanguageStart
 async def help_com_group(client, message: Message, _):
     keyboard = private_help_panel(_)
     await message.reply_text(_["help_2"], reply_markup=InlineKeyboardMarkup(keyboard))
-    
+
 @app.on_callback_query(filters.regex("Pages") & ~BANNED_USERS)
 @languageCB
 async def del_back_playlist(client, CallbackQuery, _):
