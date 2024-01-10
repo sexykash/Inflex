@@ -29,10 +29,20 @@ def add_corners(im):
     mask = ImageChops.darker(mask, im.split()[-1])
     im.putalpha(mask)
 
+def circle(img):
+    h,w=img.size
+    a = Image.new('L', [h,w], 0)
+    b = ImageDraw.Draw(a)
+    b.pieslice([(0, 0), (h,w)], 0, 360, fill = 255,outline = "white")
+    c = np.array(img)
+    d = np.array(a)
+    e = np.dstack((c, d))
+    return Image.fromarray(e)
 
-async def get_thumb(videoid):
-    if os.path.isfile(f"cache/{videoid}.png"):
-        return f"cache/{videoid}.png"
+
+async def get_thumb(videoid,user_id):
+    if os.path.isfile(f"cache/{videoid}_{user_id}.png"):
+        return f"cache/{videoid}_{user_id}.png"
     url = f"https://www.youtube.com/watch?v={videoid}"
     try:
         results = VideosSearch(url, limit=1)
@@ -64,7 +74,21 @@ async def get_thumb(videoid):
                     f = await aiofiles.open(f"cache/thumb{videoid}.png", mode="wb")
                     await f.write(await resp.read())
                     await f.close()
+        
+        
+        # Get user profile pic
+        p=0            
+        try: 
+            async for photo in app.get_chat_photos(user_id,1): 
+                sp=await app.download_media(photo.file_id, file_name=f'{user_id}.jpg')
+                p=1
+            if p==0:
+                raise Exception
+        except: 
+            async for photo in app.get_chat_photos(app.id,1): 
+                sp=await app.download_media(photo.file_id, file_name=f'{app.id}.jpg')
 
+        xp=Image.open(sp)
         youtube = Image.open(f"cache/thumb{videoid}.png")
         bg = Image.open(f"InflexMusic/assets/riyu.png")
         image1 = changeImageSize(1280, 720, youtube)
@@ -98,6 +122,17 @@ async def get_thumb(videoid):
         background = Image.open(f"cache/temp{videoid}.png")
         background.paste(logo, (110, 150), mask=logo)
         background.paste(image3, (0, 0), mask=image3)
+        userImgWidth = 200
+        userImgHeigth = 200
+        x3 =380
+        y3=420
+        x4=x3 + userImgWidth
+        y4=y3 + userImgHeigth
+        x= changeImageSize(userImgWidth,userImgHeigth,circle(xp))
+        background.paste(x, (x3,y3), mask=x)
+        b=ImageDraw.Draw(background)
+        b.pieslice([(x3,y3), (x4,y4)], 0, 360,outline ='white',width=20)
+
 
         draw = ImageDraw.Draw(background)
         font = ImageFont.truetype("InflexMusic/assets/font.ttf", 45)
@@ -137,8 +172,8 @@ async def get_thumb(videoid):
             os.remove(f"cache/thumb{videoid}.png")
         except:
             pass
-        background.save(f"cache/{videoid}.png")
-        return f"cache/{videoid}.png"
+        background.save(f"cache/{videoid}_{user_id}.png")
+        return f"cache/{videoid}_{user_id}.png"
     except Exception as e:
         print(e)
         return YOUTUBE_IMG_URL
